@@ -7,10 +7,15 @@ const db = require('./db')
 router.get('/', async (req, res) => {
     // res.send('Hello World! From users')
     try {
-        const [results, fields] = await db.query('SELECT * FROM users');
+        // const [results, fields] = await db.query('SELECT * FROM users');
+        const results = await db.user.findMany({
+            where: {
+                is_active: 1
+            }
+        });
 
         console.log(results); // results contains rows returned by server
-        console.log(fields); // fields contains extra meta data about results, if available
+        // console.log(fields); // fields contains extra meta data about results, if available
 
         res.send(results)
     } catch (err) {
@@ -24,8 +29,25 @@ router.post('/', async (req, res) => {
     const { name, email, password, is_active } = req.body
 
     try {
-        const [results, fields] = await db.query('INSERT INTO users (name, email, password, is_active) VALUES (?, ?, ?, ?)', [name, email, password, is_active]);
-        res.send(results)
+        // const [results, fields] = await db.query('INSERT INTO users (name, email, password, is_active) VALUES (?, ?, ?, ?)', [name, email, password, is_active]);
+        const results = await db.user.create({
+            data: {
+                name: name,
+                email: email,
+                password:password,
+                is_active: is_active
+            }
+            // data: {
+            //     name,
+            //     email,
+            //     password,
+            //     is_active
+            // }
+        });
+        res.status(201).send({
+            message: 'User created successfully',
+            data: results
+        })
     } catch (error) {
         res.send(error)
     }
@@ -37,9 +59,27 @@ router.post('/', async (req, res) => {
 router.put('/:id', async (req, res) => {
     const { name, email, password, is_active } = req.body
 
+    const userId = parseInt(req.params.id)
+
     try {
-        const [results, fields] = await db.query('UPDATE users SET name = ?, email = ?, password = ?, is_active = ? WHERE id = ?', [name, email, password, is_active, req.params.id]);
-        res.send(results)
+        // const [results, fields] = await db.query('UPDATE users SET name = ?, email = ?, password = ?, is_active = ? WHERE id = ?', [name, email, password, is_active, req.params.id]);
+        const results = await db.user.update({
+            where: {
+                id: userId
+            },
+            data: {
+                name,
+                email,
+                password,
+                is_active
+            }
+        });
+       
+        res.status(200).send({
+            message: 'User updated successfully',
+            data: results
+        })
+
     } catch (error) {
         res.send(error)
     }
@@ -50,8 +90,18 @@ router.put('/:id', async (req, res) => {
 router.delete('/:id', async (req, res) => {
 
     try {
-        const [results, fields] = await db.query('DELETE FROM users WHERE id = ?', [ req.params.id]);
-        res.send(results)
+        // const [results, fields] = await db.query('DELETE FROM users WHERE id = ?', [ req.params.id]);
+        const results = await db.user.delete({
+            where: {
+                id: parseInt(req.params.id)
+            }
+        });
+        
+        res.status(200).send({
+            message: 'User deleted successfully',
+            data: results
+        })
+
     } catch (error) {
         res.send(error)
     }
